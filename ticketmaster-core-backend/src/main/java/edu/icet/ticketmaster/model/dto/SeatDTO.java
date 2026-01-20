@@ -1,7 +1,7 @@
 package edu.icet.ticketmaster.model.dto;
 
+import edu.icet.ticketmaster.model.entity.Event;
 import lombok.*;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 

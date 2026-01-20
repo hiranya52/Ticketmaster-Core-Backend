@@ -1,19 +1,25 @@
 package edu.icet.ticketmaster.model.entity;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@Entity
 public class Seat {
+
 
     @Id
     private int id;
 
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "event_id")
-    private int event;
+    private Event event;
 
     private String seatNumber;
 

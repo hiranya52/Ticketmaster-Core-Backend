@@ -1,4 +1,7 @@
 package edu.icet.ticketmaster.repository;
 
-public interface BookingRepository {
+import edu.icet.ticketmaster.model.entity.Booking;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BookingRepository extends JpaRepository<Booking,Integer> {
 }
