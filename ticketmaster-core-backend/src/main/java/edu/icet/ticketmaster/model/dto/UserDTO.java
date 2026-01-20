@@ -1,5 +1,6 @@
 package edu.icet.ticketmaster.model.dto;
 
+import edu.icet.ticketmaster.model.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,19 +9,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@Entity
 public class UserDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    private int id;
     private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Tier tier;
-
+    private String tier;
     private String email;
 
     public enum Tier {
