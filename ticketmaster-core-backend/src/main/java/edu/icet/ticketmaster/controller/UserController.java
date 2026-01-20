@@ -22,4 +22,9 @@ public class UserController {
         userService.save(userDTO);
     }
 
+    @DeleteMapping("/delete/{id}")
+    public void deleteUser(@PathVariable int id){
+        userService.delete(id);
+    }
+
 }
