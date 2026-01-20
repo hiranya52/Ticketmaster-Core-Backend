@@ -17,21 +17,39 @@ public class SeatService {
     @Autowired
     SeatRepository seatRepository;
 
-    public SeatDTO holdSeat(int seatId, int userId) {
+    private void lockSeat(Seat seat, int userId) {
+        seat.setStatus(Seat.SeatStatus.HELD);
+        seat.setHeldByUserId(userId);
+        seat.setHoldExpiry(LocalDateTime.now().plusMinutes(10));
+        seatRepository.save(seat);
+    }
 
-        Seat seat = seatRepository.findById(seatId).get();
+    private void releaseExpiredHold(Seat seat) {
+        if (seat.getStatus() == Seat.SeatStatus.HELD &&
+                seat.getHoldExpiry() != null &&
+                seat.getHoldExpiry().isBefore(LocalDateTime.now())) {
 
-        if (seat == null) {
-            throw new RuntimeException("Seat not found");
-        }
-
-        // If seat is AVAILABLE -> hold it
-        if (seat.getStatus() == Seat.SeatStatus.AVAILABLE) {
-            seat.setStatus(Seat.SeatStatus.HELD);
-            seat.setHeldByUserId(userId);
-            seat.setHoldExpiry(LocalDateTime.now().plusMinutes(10));
+            seat.setStatus(Seat.SeatStatus.AVAILABLE);
+            seat.setHeldByUserId(0);
+            seat.setHoldExpiry(null);
 
             seatRepository.save(seat);
+        }
+    }
+
+
+    public SeatDTO holdSeat(int seatId, int userId) {
+
+        Seat seat = seatRepository.findById(seatId).orElseThrow(
+                () -> new RuntimeException("Seat not found")
+        );
+
+        // Release if expired
+        releaseExpiredHold(seat);
+
+        // Now check status again
+        if (seat.getStatus() == Seat.SeatStatus.AVAILABLE) {
+            lockSeat(seat, (int) userId);
 
             return new SeatDTO(
                     seat.getId(),
@@ -42,32 +60,14 @@ public class SeatService {
                     seat.getHoldExpiry()
             );
         }
-        //if sea holds expire
+
         if (seat.getStatus() == Seat.SeatStatus.HELD) {
-
-            if (seat.getHoldExpiry().isBefore(LocalDateTime.now())) {
-                seat.setHeldByUserId(userId);
-                seat.setHoldExpiry(LocalDateTime.now().plusMinutes(10));
-
-                seatRepository.save(seat);
-
-                return new SeatDTO(
-                        seat.getId(),
-                        seat.getEvent().getId(),
-                        seat.getSeatNumber(),
-                        seat.getStatus().name(),
-                        seat.getHeldByUserId(),
-                        seat.getHoldExpiry()
-                );
-            }
-
-            // If hold still active -> throw custom exception
             long remainingSeconds = Duration.between(LocalDateTime.now(), seat.getHoldExpiry()).getSeconds();
             throw new SeatLockedException("Seat is locked. Remaining seconds: " + remainingSeconds);
         }
 
-        // If seat is already SOLD
         throw new RuntimeException("Seat already sold");
     }
+
 
 }
